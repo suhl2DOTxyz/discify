@@ -3,7 +3,7 @@
 ## Links that belong to the original Blockify mod (except CurseForge and Modrinth)
 [![Crowdin](https://is.gd/TfsUVl)](https://www.crowdin.com/project/blockify)
 [![CurseForge](https://is.gd/BeBNjV)](https://www.curseforge.com/minecraft/mc-mods/discify)
-[![Modrinth](https://is.gd/h1Lgw5)](https://modrinth.com/mod/discify)
+[![Modrinth](https://is.gd/h1Lgw5)](https://modrinth.com/mod/discify-2)
 [![License](https://img.shields.io/github/license/clownless/blockify?style=flat-square)](https://github.com/clownless/Blockify/blob/main/LICENSE)
 [![ModLoader](https://img.shields.io/badge/modloader-Fabric%2C%20Quilt-1976d2?style=flat-square)](https://fabricmc.net/)
 [![Minecraft](https://img.shields.io/badge/minecraft-26.1.2-1976d2?style=flat-square)](https://www.minecraft.net/)
