@@ -1,9 +1,9 @@
 <img src="./src/main/resources/assets/blockify/icon.png" width="150" align="left"/>
 
-## Blockify Mod
+## Links that belong to the original Blockify mod (except CurseForge and Modrinth)
 [![Crowdin](https://is.gd/TfsUVl)](https://www.crowdin.com/project/blockify)
-[![CurseForge](https://is.gd/BeBNjV)](https://www.curseforge.com/minecraft/mc-mods/blockify)
-[![Modrinth](https://is.gd/h1Lgw5)](https://modrinth.com/mod/blockify)
+[![CurseForge](https://is.gd/BeBNjV)](https://www.curseforge.com/minecraft/mc-mods/discify)
+[![Modrinth](https://is.gd/h1Lgw5)](https://modrinth.com/mod/discify)
 [![License](https://img.shields.io/github/license/clownless/blockify?style=flat-square)](https://github.com/clownless/Blockify/blob/main/LICENSE)
 [![ModLoader](https://img.shields.io/badge/modloader-Fabric%2C%20Quilt-1976d2?style=flat-square)](https://fabricmc.net/)
 [![Minecraft](https://img.shields.io/badge/minecraft-26.1.2-1976d2?style=flat-square)](https://www.minecraft.net/)
@@ -23,7 +23,7 @@ Fork of the original [Blockify](https://github.com/BuffMage/Blockify) — overla
 
 ## How to use
 
-Press `Play/Pause` once to open the Spotify authorization page in your browser. Blockify runs a temporary local server on port `8001` to receive the OAuth callback; tokens are stored in `config/blockifyTokens.json`.
+Play a song on Spotify, then load into your server/world of choice. No Spotify authentication nor premium needed. To save a track to your Spotify library (press L), you'd need to authenticate your Spotify account. However, it is entirely optional.
 
 ### Default key bindings
 
@@ -39,7 +39,7 @@ Press `Play/Pause` once to open the Spotify authorization page in your browser. 
 | Decrease Volume | `Num -` |
 | Toggle In-Game Music | `Num 1` |
 
-All bindings can be remapped from the standard Minecraft Controls screen under the **Blockify** category.
+All bindings can be remapped from the standard Minecraft Controls screen under the **Discify** category.
 
 ### Commands
 
@@ -47,9 +47,9 @@ All bindings can be remapped from the standard Minecraft Controls screen under t
 
 ### Configuration
 
-Open the in-game config screen via Mod Menu → Blockify. Available options include HUD scale, position, anchor corner, album-art toggle, custom colors for title/artist/time/progress bar/background, background transparency, in-game music volume, and volume step.
+Open the in-game config screen via Mod Menu → Discify. Available options include HUD scale, position, anchor corner, album-art toggle, custom colors for title/artist/time/progress bar/background, background transparency, in-game music volume, and volume step.
 
-## Screenshots
+## Screenshots (same screenshots from Blockify repo, UI did not receive a change)
 
 ![Screenshot 1](https://i.imgur.com/5gebkFC.jpeg)
 ![Screenshot 2](https://i.imgur.com/J74wZr8.jpeg)
@@ -62,7 +62,9 @@ Open the in-game config screen via Mod Menu → Blockify. Available options incl
 ./gradlew runClient      # launch a dev Minecraft client with the mod
 ```
 
-## Contributing
+# Everything past this line only benefits the Blockify developers.
+
+## Contributing/Support the original Blockify creators
 
 Contributions are **greatly appreciated**.
 
