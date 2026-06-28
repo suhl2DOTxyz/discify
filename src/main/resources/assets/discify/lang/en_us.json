@@ -1,5 +1,5 @@
-
-  "discify.key.category": "Discify",
+{
+  "key.category.discify.discify": "Discify",
   "discify.key.play": "Play/Pause",
   "discify.key.next": "Next Song",
   "discify.key.prev": "Previous Song",

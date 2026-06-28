@@ -50,6 +50,10 @@ public class DiscifyHUD implements HudElement {
         }
 
         Minecraft client = Minecraft.getInstance();
+        if (client.getDebugOverlay().showDebugScreen()) {
+            return;
+        }
+
         Font font = client.font;
         int scaledWidth  = client.getWindow().getGuiScaledWidth();
         int scaledHeight = client.getWindow().getGuiScaledHeight();
