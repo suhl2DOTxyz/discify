@@ -1,4 +1,4 @@
-package one.clownless.discify.util;
+package one.suhl2.discify.util;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;

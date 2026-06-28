@@ -1,4 +1,4 @@
-package one.clownless.discify.util;
+package one.suhl2.discify.util;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;

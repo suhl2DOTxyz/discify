@@ -1,4 +1,4 @@
-package one.clownless.discify;
+package one.suhl2.discify;
 
 import net.minecraft.client.renderer.RenderPipelines;
 import eu.midnightdust.lib.util.MidnightColorUtil;
@@ -10,8 +10,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.util.FormattedCharSequence;
-import one.clownless.discify.util.SpotifyUtil;
-import one.clownless.discify.util.URLImage;
+import one.suhl2.discify.util.SpotifyUtil;
+import one.suhl2.discify.util.URLImage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joml.Matrix3x2fStack;
@@ -45,7 +45,7 @@ public class DiscifyHUD implements HudElement {
             albumImage = new URLImage(300, 300);
         }
 
-        if (hudInfo[1] == null || isHidden) {
+        if (hudInfo[0] == null || hudInfo[0].isEmpty() || isHidden) {
             return;
         }
 
@@ -101,23 +101,28 @@ public class DiscifyHUD implements HudElement {
         int titleColor = MidnightColorUtil.hex2Rgb(DiscifyConfig.titleColor).getRGB();
         List<FormattedCharSequence> nameWrap = font.split(FormattedText.of(hudInfo[0]), 125);
         int yOffset = 0;
-        if (nameWrap.size() > 1) {
-            context.text(font, nameWrap.get(0), 60 - textOffset, 5, titleColor, true);
-            context.text(font, nameWrap.get(1), 60 - textOffset, 18, titleColor, true);
-            yOffset = 15;
-        } else {
-            context.text(font, nameWrap.get(0), 60 - textOffset, 5, titleColor, true);
+        if (!nameWrap.isEmpty()) {
+            if (nameWrap.size() > 1) {
+                context.text(font, nameWrap.get(0), 60 - textOffset, 5, titleColor, true);
+                context.text(font, nameWrap.get(1), 60 - textOffset, 18, titleColor, true);
+                yOffset = 15;
+            } else {
+                context.text(font, nameWrap.get(0), 60 - textOffset, 5, titleColor, true);
+            }
         }
 
         pose.scale(0.5F, 0.5F);
 
         int artistColor = MidnightColorUtil.hex2Rgb(DiscifyConfig.artistColor).getRGB();
-        List<FormattedCharSequence> artistWrap = font.split(FormattedText.of(hudInfo[1]), 140);
-        if (artistWrap.size() > 1) {
-            context.text(font, artistWrap.get(0), 120 - (textOffset * 2), 44 + yOffset, artistColor, true);
-            context.text(font, artistWrap.get(1), 120 - (textOffset * 2), 57 + yOffset, artistColor, true);
-        } else {
-            context.text(font, artistWrap.get(0), 120 - (textOffset * 2), 44 + yOffset, artistColor, true);
+        String artistText = (hudInfo[1] != null) ? hudInfo[1] : "";
+        List<FormattedCharSequence> artistWrap = font.split(FormattedText.of(artistText), 140);
+        if (!artistWrap.isEmpty()) {
+            if (artistWrap.size() > 1) {
+                context.text(font, artistWrap.get(0), 120 - (textOffset * 2), 44 + yOffset, artistColor, true);
+                context.text(font, artistWrap.get(1), 120 - (textOffset * 2), 57 + yOffset, artistColor, true);
+            } else {
+                context.text(font, artistWrap.get(0), 120 - (textOffset * 2), 44 + yOffset, artistColor, true);
+            }
         }
 
         String volumeText = hudInfo[6] == null ? "" : hudInfo[6];

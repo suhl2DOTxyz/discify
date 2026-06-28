@@ -1,4 +1,4 @@
-package one.clownless.discify.util;
+package one.suhl2.discify.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

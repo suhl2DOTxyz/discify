@@ -15,7 +15,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "one.clownless.discify.DiscifyClient"
+      "one.suhl2.discify.DiscifyClient"
     ]
   },
   "mixins": [

@@ -1,4 +1,4 @@
-package one.clownless.discify.util;
+package one.suhl2.discify.util;
 
 /**
  * Credit to

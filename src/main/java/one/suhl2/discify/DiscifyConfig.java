@@ -1,4 +1,4 @@
-package one.clownless.discify;
+package one.suhl2.discify;
 
 import eu.midnightdust.lib.config.MidnightConfig;
 

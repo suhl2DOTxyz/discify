@@ -1,4 +1,4 @@
-package one.clownless.discify;
+package one.suhl2.discify;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

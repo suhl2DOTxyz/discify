@@ -1,7 +1,7 @@
-package one.clownless.discify.util;
+package one.suhl2.discify.util;
 
-import one.clownless.discify.DiscifyConfig;
-import one.clownless.discify.DiscifyHUD;
+import one.suhl2.discify.DiscifyConfig;
+import one.suhl2.discify.DiscifyHUD;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
