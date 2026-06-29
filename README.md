@@ -1,6 +1,8 @@
-<img src="./src/main/resources/assets/blockify/icon.png" width="150" align="left"/>
+# Discify
 
-## Links that belong to the original Blockify mod (except CurseForge and Modrinth)
+Discify is a modern Minecraft mod that brings your Spotify experience directly into the game. As a fork of the original [Blockify](https://github.com/BuffMage/Blockify), it overlays essential playback information—such as the track title, artist, album art, progress bar, and volume—directly onto your Minecraft HUD.
+
+## Quick Links
 [![Crowdin](https://is.gd/TfsUVl)](https://www.crowdin.com/project/blockify)
 [![CurseForge](https://is.gd/BeBNjV)](https://www.curseforge.com/minecraft/mc-mods/discify-spotify-mod)
 [![Modrinth](https://is.gd/h1Lgw5)](https://modrinth.com/mod/discify-2)
@@ -8,74 +10,56 @@
 [![ModLoader](https://img.shields.io/badge/modloader-Fabric%2C%20Quilt-1976d2?style=flat-square)](https://fabricmc.net/)
 [![Minecraft](https://img.shields.io/badge/minecraft-26.1.2-1976d2?style=flat-square)](https://www.minecraft.net/)
 [![Java Version](https://img.shields.io/badge/java-25%20(or%20above)-1976d2?style=flat-square)](https://adoptium.net/releases.html)
-![Environment](https://img.shields.io/badge/environment-client-1976d2?style=flat-square)
 [![Discord](https://img.shields.io/discord/837540892411691008?label=discord&style=flat-square)](https://discord.gg/bSgZxY3rQm)
 
-
-Fork of the original [Blockify](https://github.com/BuffMage/Blockify) — overlays your Spotify playback on the Minecraft HUD: track title, artist, album art, progress bar, and volume.
-
-### Requirements
-
+## Requirements
 - Minecraft **26.1.2** with **Fabric Loader** 0.19.2+ and **Fabric API**
 - Java **25** or newer
 - [MidnightLib](https://modrinth.com/mod/midnightlib) 1.9.3+ (for the in-game config screen)
 - A **Spotify Premium** account (the Web API endpoints used for playback control are Premium-only)
 
-## How to use
+## Usage
+Simply play a song on Spotify and load into your Minecraft world. Authentication is only required if you want to save tracks to your library (press 'L').
 
-Play a song on Spotify, then load into your server/world of choice. No Spotify authentication nor premium needed. To save a track to your Spotify library (press L), you'd need to authenticate your Spotify account. However, it is entirely optional.
-
-### Default key bindings
-
+### Key Bindings (Configurable)
 | Action | Key |
 | --- | --- |
 | Play/Pause (or Authorize on first run) | `Num 5` |
 | Previous Song | `Num 4` |
 | Next Song | `Num 6` |
-| Save current track to your library | `L` |
+| Save current track | `L` |
 | Force Update | `Num 8` |
-| Hide Blockify HUD | `Num 9` |
+| Hide HUD | `Num 9` |
 | Increase Volume | `Num +` |
 | Decrease Volume | `Num -` |
-| Toggle In-Game Music | `Num 1` |
+| Toggle Music | `Num 1` |
 
-All bindings can be remapped from the standard Minecraft Controls screen under the **Discify** category.
+## Commands
+- `/sharetrack` — Sends a link to the currently playing track into chat (visible only to you).
 
-### Commands
+## Configuration
+Access settings in-game via **Mod Menu → Discify**. Adjust HUD scale, positioning, album art visibility, custom colors, transparency, and more.
 
-- `/sharetrack` — sends a link to the currently playing track into chat (visible only to you).
-
-### Configuration
-
-Open the in-game config screen via Mod Menu → Discify. Available options include HUD scale, position, anchor corner, album-art toggle, custom colors for title/artist/time/progress bar/background, background transparency, in-game music volume, and volume step.
-
-## Screenshots (same screenshots from Blockify repo, UI did not receive a change)
-
-![Screenshot 1](https://i.imgur.com/5gebkFC.jpeg)
-![Screenshot 2](https://i.imgur.com/J74wZr8.jpeg)
-![Screenshot 3](https://i.imgur.com/c9Lajim.png)
-
-## Building from source
-
+## Building
 ```bash
-./gradlew build          # build the mod JAR (output in build/libs/)
-./gradlew runClient      # launch a dev Minecraft client with the mod
+./gradlew build          # build the mod JAR
+./gradlew runClient      # launch a dev Minecraft client
 ```
 
+## Acknowledgements & Contributing
+Discify is a fork of the original [Blockify](https://github.com/BuffMage/Blockify). We highly encourage users to support the original creators!
+
 # Everything past this line only benefits the Blockify developers.
-
-## Contributing/Support the original Blockify creators
-
 Contributions are **greatly appreciated**.
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork the project.
+2. Create a feature branch.
+3. Commit your changes.
+4. Push to the branch.
+5. Open a Pull Request.
 
-## Localisation
+### Localisation
+Translations are managed through [Crowdin](https://www.crowdin.com/project/blockify). Please do not open PRs that hardcode translated strings.
 
-Translations are managed through Crowdin — please don't open PRs that hardcode translated strings.
-
-[![Crowdin](https://is.gd/TfsUVl)](https://www.crowdin.com/project/blockify)
+---
+*UI/HUD aesthetics are based on the original Blockify design.*
