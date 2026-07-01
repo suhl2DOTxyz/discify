@@ -47,6 +47,7 @@ public class DiscifyClient implements ClientModInitializer {
     private static Thread requestThread;
     private static String prevSongTitle = "";
     private static String prevSongArtist = "";
+    public static volatile boolean forcePoll = false;
 
     public static final Logger LOGGER = LogManager.getLogger("Discify");
 
@@ -65,6 +66,7 @@ public class DiscifyClient implements ClientModInitializer {
 
         requestThread = new Thread(() -> {
             int volumePollCooldown = 0;
+            int syncCooldown = 0;
 
             while (true) {
                 try {
@@ -77,9 +79,16 @@ public class DiscifyClient implements ClientModInitializer {
                     }
 
                     boolean shouldPoll = DiscifyHUD.getDuration() <= DiscifyHUD.getProgress()
-                            || DiscifyHUD.getDuration() < 0;
+                            || DiscifyHUD.getDuration() < 0
+                            || forcePoll
+                            || --syncCooldown <= 0;
 
                     if (shouldPoll) {
+                        if (forcePoll) {
+                            Thread.sleep(300); // Allow media system to update
+                        }
+                        syncCooldown = 4;
+                        forcePoll = false;
                         String[] data = SMTCUtil.getMediaInfo();
 
                         if (data[0] != null) {
@@ -181,6 +190,7 @@ public class DiscifyClient implements ClientModInitializer {
         if (currPressState && !playKeyPrevState) {
             LOGGER.info("Play/Pause key pressed");
             SpotifyUtil.playPause();
+            forcePoll = true;
         }
         playKeyPrevState = currPressState;
     }
@@ -189,6 +199,7 @@ public class DiscifyClient implements ClientModInitializer {
         if (currPressState && !nextKeyPrevState) {
             LOGGER.info("Next Key Pressed");
             SpotifyUtil.nextSong();
+            forcePoll = true;
         }
         nextKeyPrevState = currPressState;
     }
@@ -197,6 +208,7 @@ public class DiscifyClient implements ClientModInitializer {
         if (currPressState && !prevKeyPrevState) {
             LOGGER.info("Previous Key Pressed");
             SpotifyUtil.prevSong();
+            forcePoll = true;
         }
         prevKeyPrevState = currPressState;
     }
@@ -221,7 +233,7 @@ public class DiscifyClient implements ClientModInitializer {
     public void forceKeyHandler(boolean currPressState) {
         if (currPressState && !forceKeyPrevState) {
             LOGGER.info("Force Key Pressed");
-            DiscifyHUD.setDuration(-2000);
+            forcePoll = true;
         }
         forceKeyPrevState = currPressState;
     }

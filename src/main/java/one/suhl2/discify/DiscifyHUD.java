@@ -39,7 +39,7 @@ public class DiscifyHUD implements HudElement {
     private static final int ART_Y = 5;
     private static final int TEXT_GAP = 10;
     private static final int BG_NO_LYRICS = 48;
-    private static final int BG_WITH_LYRICS = 72;
+    private static final int BG_WITH_LYRICS = 80;
 
     public DiscifyHUD() {
         albumImage = null;
@@ -212,7 +212,7 @@ public class DiscifyHUD implements HudElement {
 
     public static void updateData(String[] data) {
         hudInfo    = data;
-        progressMS = hudInfo[2] == null ? 0 : (Integer.parseInt(hudInfo[2]) - 1000);
+        progressMS = hudInfo[2] == null ? 0 : Integer.parseInt(hudInfo[2]);
         durationMS = hudInfo[3] == null ? -1 : Integer.parseInt(hudInfo[3]);
         lastUpdateTimestamp = System.currentTimeMillis();
     }

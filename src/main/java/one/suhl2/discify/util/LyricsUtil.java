@@ -95,6 +95,9 @@ public class LyricsUtil {
                 double seconds = Double.parseDouble(m.group(2));
                 int timeMs = (int) ((minutes * 60 + seconds) * 1000);
                 String text = m.group(3).trim();
+                if (text.isEmpty()) {
+                    text = "♪";
+                }
                 lines.add(new LyricLine(timeMs, text));
             }
         }
