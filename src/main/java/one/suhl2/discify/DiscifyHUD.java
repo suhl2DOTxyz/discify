@@ -34,7 +34,7 @@ public class DiscifyHUD implements HudElement {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
     private static final int HUD_WIDTH = 185;
-    private static final int ART_SIZE = 45;
+    private static final int ART_SIZE = 36;
     private static final int ART_X = 5;
     private static final int ART_Y = 5;
     private static final int TEXT_GAP = 10;
@@ -128,7 +128,7 @@ public class DiscifyHUD implements HudElement {
             prevImage = hudInfo[4];
         }
         if (hudInfo[4] != null && (DiscifyConfig.drawCover)) {
-            int size = (int) (albumImage.getWidth() * 0.15F);
+            int size = (int) (albumImage.getWidth() * 0.12F);
             context.blit(RenderPipelines.GUI_TEXTURED, albumImage.getIdentifier(), ART_X, ART_Y, 0F, 0F, size, size, size, size);
         }
 

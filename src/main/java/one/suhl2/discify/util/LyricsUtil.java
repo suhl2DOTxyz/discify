@@ -37,7 +37,7 @@ public class LyricsUtil {
         loading = true;
 
         Thread fetcher = new Thread(() -> {
-            int retries = 2; // Try up to 3 times total
+            int retries = 4; // Try up to 5 times total
             boolean success = false;
 
             while (retries >= 0 && !success) {
@@ -91,47 +91,57 @@ public class LyricsUtil {
                 }
             }
 
-            // Fallback to Search API if exact GET failed/timed out
+            // Fallback to Search API if exact GET failed/timed out — also retried up to 5 times
             if (!success) {
-                try {
-                    synchronized (LyricsUtil.class) {
-                        if (!key.equals(currentSongKey)) return;
-                    }
+                int fallbackRetries = 4;
+                while (fallbackRetries >= 0 && !success) {
+                    try {
+                        synchronized (LyricsUtil.class) {
+                            if (!key.equals(currentSongKey)) return;
+                        }
 
-                    String query = (artist != null ? artist + " " : "") + (title != null ? title : "");
-                    String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-                    String url = "https://lrclib.net/api/search?q=" + encodedQuery;
+                        String query = (artist != null ? artist + " " : "") + (title != null ? title : "");
+                        String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+                        String url = "https://lrclib.net/api/search?q=" + encodedQuery;
 
-                    HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                            .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
-                            .timeout(java.time.Duration.ofSeconds(5))
-                            .build();
+                        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                                .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
+                                .timeout(java.time.Duration.ofSeconds(5))
+                                .build();
 
-                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-                    synchronized (LyricsUtil.class) {
-                        if (!key.equals(currentSongKey)) return;
+                        synchronized (LyricsUtil.class) {
+                            if (!key.equals(currentSongKey)) return;
 
-                        if (response.statusCode() == 200) {
-                            com.google.gson.JsonArray array = JsonParser.parseString(response.body()).getAsJsonArray();
-                            if (array.size() > 0) {
-                                JsonObject first = array.get(0).getAsJsonObject();
-                                if (first.has("syncedLyrics") && !first.get("syncedLyrics").isJsonNull()) {
-                                    String syncedLyrics = first.get("syncedLyrics").getAsString();
-                                    cachedLyrics = parseLRC(syncedLyrics);
-                                    LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " synced lyric lines (via search fallback) for \"" + title + "\"");
-                                    success = true;
-                                } else if (first.has("plainLyrics") && !first.get("plainLyrics").isJsonNull()) {
-                                    String plainLyrics = first.get("plainLyrics").getAsString();
-                                    cachedLyrics = parsePlain(plainLyrics);
-                                    LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " plain lyric lines (via search fallback) for \"" + title + "\"");
-                                    success = true;
+                            if (response.statusCode() == 200) {
+                                com.google.gson.JsonArray array = JsonParser.parseString(response.body()).getAsJsonArray();
+                                if (array.size() > 0) {
+                                    JsonObject first = array.get(0).getAsJsonObject();
+                                    if (first.has("syncedLyrics") && !first.get("syncedLyrics").isJsonNull()) {
+                                        String syncedLyrics = first.get("syncedLyrics").getAsString();
+                                        cachedLyrics = parseLRC(syncedLyrics);
+                                        LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " synced lyric lines (via search fallback) for \"" + title + "\"");
+                                        success = true;
+                                    } else if (first.has("plainLyrics") && !first.get("plainLyrics").isJsonNull()) {
+                                        String plainLyrics = first.get("plainLyrics").getAsString();
+                                        cachedLyrics = parsePlain(plainLyrics);
+                                        LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " plain lyric lines (via search fallback) for \"" + title + "\"");
+                                        success = true;
+                                    }
                                 }
                             }
                         }
+                    } catch (Exception e) {
+                        LOGGER.warn("[Discify] Failed to fetch lyrics via search fallback (retry remaining: " + fallbackRetries + "): " + e.getMessage());
                     }
-                } catch (Exception e) {
-                    LOGGER.warn("[Discify] Failed to fetch lyrics via search fallback: " + e.getMessage());
+
+                    if (!success) {
+                        fallbackRetries--;
+                        if (fallbackRetries >= 0) {
+                            try { Thread.sleep(1000); } catch (Exception ignored) {}
+                        }
+                    }
                 }
             }
 
