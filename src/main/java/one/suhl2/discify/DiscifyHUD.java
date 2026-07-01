@@ -91,8 +91,15 @@ public class DiscifyHUD implements HudElement {
         }
         int textOffset = textStart - 5;
 
+        // Split name early to compute dynamic background height based on wrapping
+        List<FormattedCharSequence> nameWrap = font.split(FormattedText.of(hudInfo[0]), HUD_WIDTH - textStart - 5);
+        int yOffset = 0;
+        if (nameWrap.size() > 1) {
+            yOffset = 15;
+        }
+
         boolean showLyrics = DiscifyConfig.showLyrics && LyricsUtil.hasLyrics();
-        int bgHeight = showLyrics ? BG_WITH_LYRICS : BG_NO_LYRICS;
+        int bgHeight = (showLyrics ? BG_WITH_LYRICS : BG_NO_LYRICS) + yOffset;
 
         Matrix3x2fStack pose = context.pose();
         pose.pushMatrix();
@@ -129,15 +136,11 @@ public class DiscifyHUD implements HudElement {
         int bgArgb = new Color(bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue(), DiscifyConfig.backgroundTransparency).getRGB();
         context.fill(0, 0, HUD_WIDTH, bgHeight, bgArgb);
 
-        int yOffset = 0;
-
         int titleColor = MidnightColorUtil.hex2Rgb(DiscifyConfig.titleColor).getRGB();
-        List<FormattedCharSequence> nameWrap = font.split(FormattedText.of(hudInfo[0]), HUD_WIDTH - textStart - 5);
         if (!nameWrap.isEmpty()) {
             if (nameWrap.size() > 1) {
                 context.text(font, nameWrap.get(0), textStart, 5, titleColor, true);
                 context.text(font, nameWrap.get(1), textStart, 18, titleColor, true);
-                yOffset = 15;
             } else {
                 context.text(font, nameWrap.get(0), textStart, 5, titleColor, true);
             }
