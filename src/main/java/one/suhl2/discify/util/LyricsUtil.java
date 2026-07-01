@@ -21,6 +21,8 @@ public class LyricsUtil {
 
     private static final Logger LOGGER = LogManager.getLogger("Discify");
     private static final String LRCLIB_API = "https://lrclib.net/api/get";
+    private static final String LRCLIB_SEARCH_API = "https://lrclib.net/api/search";
+    private static final String LRCMUX_API = "https://lrcmux.dev/api/compat/lrclib/api/get";
 
     private static volatile String currentSongKey = "";
     private static volatile List<LyricLine> cachedLyrics = Collections.emptyList();
@@ -86,7 +88,7 @@ public class LyricsUtil {
                 if (!success) {
                     retries--;
                     if (retries >= 0) {
-                        try { Thread.sleep(1000); } catch (Exception ignored) {}
+                        try { Thread.sleep(3000); } catch (Exception ignored) {}
                     }
                 }
             }
@@ -102,7 +104,7 @@ public class LyricsUtil {
 
                         String query = (artist != null ? artist + " " : "") + (title != null ? title : "");
                         String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-                        String url = "https://lrclib.net/api/search?q=" + encodedQuery;
+                        String url = LRCLIB_SEARCH_API + "?q=" + encodedQuery;
 
                         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                                 .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
@@ -139,7 +141,64 @@ public class LyricsUtil {
                     if (!success) {
                         fallbackRetries--;
                         if (fallbackRetries >= 0) {
-                            try { Thread.sleep(1000); } catch (Exception ignored) {}
+                            try { Thread.sleep(3000); } catch (Exception ignored) {}
+                        }
+                    }
+                }
+            }
+
+            // Final fallback: lrcmux (aggregates Musixmatch, Kugou, YouTube Music, Genius)
+            // Uses LRCLIB-compatible endpoint so same JSON shape
+            if (!success) {
+                int lrcmuxRetries = 4;
+                while (lrcmuxRetries >= 0 && !success) {
+                    try {
+                        synchronized (LyricsUtil.class) {
+                            if (!key.equals(currentSongKey)) return;
+                        }
+
+                        String encodedTitle = URLEncoder.encode(title != null ? title : "", StandardCharsets.UTF_8);
+                        String encodedArtist = URLEncoder.encode(artist != null ? artist : "", StandardCharsets.UTF_8);
+                        String url = LRCMUX_API + "?artist_name=" + encodedArtist + "&track_name=" + encodedTitle;
+
+                        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                                .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
+                                .timeout(java.time.Duration.ofSeconds(5))
+                                .build();
+
+                        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                        synchronized (LyricsUtil.class) {
+                            if (!key.equals(currentSongKey)) return;
+
+                            if (response.statusCode() == 200) {
+                                JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+                                if (json.has("syncedLyrics") && !json.get("syncedLyrics").isJsonNull()) {
+                                    String syncedLyrics = json.get("syncedLyrics").getAsString();
+                                    cachedLyrics = parseLRC(syncedLyrics);
+                                    LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " synced lyric lines (via lrcmux) for \"" + title + "\"");
+                                    success = true;
+                                } else if (json.has("plainLyrics") && !json.get("plainLyrics").isJsonNull()) {
+                                    String plainLyrics = json.get("plainLyrics").getAsString();
+                                    cachedLyrics = parsePlain(plainLyrics);
+                                    LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " plain lyric lines (via lrcmux) for \"" + title + "\"");
+                                    success = true;
+                                }
+                            } else if (response.statusCode() == 404) {
+                                LOGGER.info("[Discify] lrcmux: no lyrics found for \"" + title + "\" by " + artist);
+                                success = true; // definitive, stop retrying
+                            } else {
+                                LOGGER.warn("[Discify] lrcmux returned HTTP " + response.statusCode());
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.warn("[Discify] lrcmux fetch failed (retry remaining: " + lrcmuxRetries + "): " + e.getMessage());
+                    }
+
+                    if (!success) {
+                        lrcmuxRetries--;
+                        if (lrcmuxRetries >= 0) {
+                            try { Thread.sleep(3000); } catch (Exception ignored) {}
                         }
                     }
                 }
