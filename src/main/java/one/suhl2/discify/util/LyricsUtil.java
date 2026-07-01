@@ -37,45 +37,107 @@ public class LyricsUtil {
         loading = true;
 
         Thread fetcher = new Thread(() -> {
-            try {
-                String encodedTitle = URLEncoder.encode(title != null ? title : "", StandardCharsets.UTF_8);
-                String encodedArtist = URLEncoder.encode(artist != null ? artist : "", StandardCharsets.UTF_8);
-                String url = LRCLIB_API + "?artist_name=" + encodedArtist + "&track_name=" + encodedTitle;
+            int retries = 2; // Try up to 3 times total
+            boolean success = false;
 
-                HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                        .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
-                        .timeout(java.time.Duration.ofSeconds(5))
-                        .build();
+            while (retries >= 0 && !success) {
+                try {
+                    synchronized (LyricsUtil.class) {
+                        if (!key.equals(currentSongKey)) return;
+                    }
 
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    String encodedTitle = URLEncoder.encode(title != null ? title : "", StandardCharsets.UTF_8);
+                    String encodedArtist = URLEncoder.encode(artist != null ? artist : "", StandardCharsets.UTF_8);
+                    String url = LRCLIB_API + "?artist_name=" + encodedArtist + "&track_name=" + encodedTitle;
 
-                synchronized (LyricsUtil.class) {
-                    if (!key.equals(currentSongKey)) return;
+                    HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                            .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
+                            .timeout(java.time.Duration.ofSeconds(5))
+                            .build();
 
-                    if (response.statusCode() == 200) {
-                        JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-                        if (json.has("syncedLyrics") && !json.get("syncedLyrics").isJsonNull()) {
-                            String syncedLyrics = json.get("syncedLyrics").getAsString();
-                            cachedLyrics = parseLRC(syncedLyrics);
-                            LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " synced lyric lines for \"" + title + "\"");
-                        } else if (json.has("plainLyrics") && !json.get("plainLyrics").isJsonNull()) {
-                            String plainLyrics = json.get("plainLyrics").getAsString();
-                            cachedLyrics = parsePlain(plainLyrics);
-                            LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " plain lyric lines for \"" + title + "\"");
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    synchronized (LyricsUtil.class) {
+                        if (!key.equals(currentSongKey)) return;
+
+                        if (response.statusCode() == 200) {
+                            JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+                            if (json.has("syncedLyrics") && !json.get("syncedLyrics").isJsonNull()) {
+                                String syncedLyrics = json.get("syncedLyrics").getAsString();
+                                cachedLyrics = parseLRC(syncedLyrics);
+                                LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " synced lyric lines for \"" + title + "\"");
+                            } else if (json.has("plainLyrics") && !json.get("plainLyrics").isJsonNull()) {
+                                String plainLyrics = json.get("plainLyrics").getAsString();
+                                cachedLyrics = parsePlain(plainLyrics);
+                                LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " plain lyric lines for \"" + title + "\"");
+                            }
+                            success = true;
+                        } else if (response.statusCode() == 404) {
+                            LOGGER.info("[Discify] No lyrics found for \"" + title + "\" by " + artist);
+                            success = true; // 404 is definitive, no need to retry
+                        } else {
+                            LOGGER.warn("[Discify] Failed to fetch lyrics: HTTP " + response.statusCode());
                         }
-                    } else if (response.statusCode() == 404) {
-                        LOGGER.info("[Discify] No lyrics found for \"" + title + "\" by " + artist);
-                    } else {
-                        LOGGER.warn("[Discify] Failed to fetch lyrics: HTTP " + response.statusCode());
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("[Discify] Failed to fetch lyrics (retry remaining: " + retries + "): " + e.getMessage());
+                }
+
+                if (!success) {
+                    retries--;
+                    if (retries >= 0) {
+                        try { Thread.sleep(1000); } catch (Exception ignored) {}
                     }
                 }
-            } catch (Exception e) {
-                LOGGER.warn("[Discify] Failed to fetch lyrics: " + e.getMessage());
-            } finally {
-                synchronized (LyricsUtil.class) {
-                    if (key.equals(currentSongKey)) {
-                        loading = false;
+            }
+
+            // Fallback to Search API if exact GET failed/timed out
+            if (!success) {
+                try {
+                    synchronized (LyricsUtil.class) {
+                        if (!key.equals(currentSongKey)) return;
                     }
+
+                    String query = (artist != null ? artist + " " : "") + (title != null ? title : "");
+                    String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
+                    String url = "https://lrclib.net/api/search?q=" + encodedQuery;
+
+                    HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                            .header("User-Agent", "Discify-MCMod/1.1 (github.com/SUHL2/Discify)")
+                            .timeout(java.time.Duration.ofSeconds(5))
+                            .build();
+
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    synchronized (LyricsUtil.class) {
+                        if (!key.equals(currentSongKey)) return;
+
+                        if (response.statusCode() == 200) {
+                            com.google.gson.JsonArray array = JsonParser.parseString(response.body()).getAsJsonArray();
+                            if (array.size() > 0) {
+                                JsonObject first = array.get(0).getAsJsonObject();
+                                if (first.has("syncedLyrics") && !first.get("syncedLyrics").isJsonNull()) {
+                                    String syncedLyrics = first.get("syncedLyrics").getAsString();
+                                    cachedLyrics = parseLRC(syncedLyrics);
+                                    LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " synced lyric lines (via search fallback) for \"" + title + "\"");
+                                    success = true;
+                                } else if (first.has("plainLyrics") && !first.get("plainLyrics").isJsonNull()) {
+                                    String plainLyrics = first.get("plainLyrics").getAsString();
+                                    cachedLyrics = parsePlain(plainLyrics);
+                                    LOGGER.info("[Discify] Loaded " + cachedLyrics.size() + " plain lyric lines (via search fallback) for \"" + title + "\"");
+                                    success = true;
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.warn("[Discify] Failed to fetch lyrics via search fallback: " + e.getMessage());
+                }
+            }
+
+            synchronized (LyricsUtil.class) {
+                if (key.equals(currentSongKey)) {
+                    loading = false;
                 }
             }
         });
