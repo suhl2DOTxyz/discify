@@ -145,11 +145,43 @@ public class LyricsUtil {
         return loading;
     }
 
-    private static class LyricLine {
-        final int timeMs;
-        final String text;
+    public static List<LyricLine> getCachedLyrics() {
+        return cachedLyrics;
+    }
 
-        LyricLine(int timeMs, String text) {
+    public static double getSmoothIndex(int progressMs) {
+        List<LyricLine> lyrics = cachedLyrics;
+        if (lyrics.isEmpty()) return -1;
+
+        int activeIndex = -1;
+        for (int i = 0; i < lyrics.size(); i++) {
+            if (lyrics.get(i).timeMs <= progressMs) {
+                activeIndex = i;
+            } else {
+                break;
+            }
+        }
+
+        if (activeIndex == -1) {
+            return -1.0;
+        }
+
+        LyricLine activeLine = lyrics.get(activeIndex);
+        long duration = 300; // transition duration in ms
+        if (progressMs - activeLine.timeMs < duration) {
+            double t = (double) (progressMs - activeLine.timeMs) / duration;
+            double ease = t * t * (3 - 2 * t);
+            return (activeIndex - 1) + ease;
+        }
+
+        return activeIndex;
+    }
+
+    public static class LyricLine {
+        public final int timeMs;
+        public final String text;
+
+        public LyricLine(int timeMs, String text) {
             this.timeMs = timeMs;
             this.text = text;
         }

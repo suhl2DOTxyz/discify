@@ -28,6 +28,7 @@ public class DiscifyHUD implements HudElement {
     private static String prevImage;
     private static int progressMS;
     private static int durationMS;
+    private static volatile long lastUpdateTimestamp = 0;
     public static boolean isHidden = false;
     public static final Logger LOGGER = LogManager.getLogger("Discify");
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
@@ -67,10 +68,19 @@ public class DiscifyHUD implements HudElement {
         int scaledWidth  = client.getWindow().getGuiScaledWidth();
         int scaledHeight = client.getWindow().getGuiScaledHeight();
 
+        int currentProgress = progressMS;
+        if (one.suhl2.discify.util.SMTCUtil.isPlaying() && lastUpdateTimestamp > 0) {
+            long elapsed = System.currentTimeMillis() - lastUpdateTimestamp;
+            if (elapsed > 0 && elapsed < 2000) {
+                currentProgress += elapsed;
+            }
+        }
+
         double percentProgress = 0;
         if (durationMS > 0) {
-            percentProgress = (double) progressMS / (double) durationMS;
+            percentProgress = (double) currentProgress / (double) durationMS;
             if (percentProgress < 0) percentProgress = 0;
+            if (percentProgress > 1) percentProgress = 1;
         }
 
         int textStart;
@@ -146,7 +156,7 @@ public class DiscifyHUD implements HudElement {
         context.fill(textStart, progressY, (int) (textStart + (barWidth * percentProgress)), progressY + 2, MidnightColorUtil.hex2Rgb(DiscifyConfig.barColor).getRGB());
 
         String volumeText = hudInfo[6] == null ? "" : hudInfo[6];
-        String progressText = (progressMS / (1000 * 60)) + ":" + String.format("%02d", (progressMS / 1000 % 60));
+        String progressText = (currentProgress / (1000 * 60)) + ":" + String.format("%02d", (currentProgress / 1000 % 60));
         String durationText = (durationMS / (1000 * 60)) + ":" + String.format("%02d ", (durationMS / 1000 % 60))
                 + I18n.get("discify.hud.volume") + ": " + volumeText;
 
@@ -156,23 +166,40 @@ public class DiscifyHUD implements HudElement {
         context.text(font, durationText, HUD_WIDTH - 5 - font.width(durationText), timeY, timeColor, true);
 
         if (showLyrics) {
-            int lyricsColor = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor).getRGB();
-            int lyricsDim = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor).darker().getRGB();
+            double smoothIndex = LyricsUtil.getSmoothIndex(currentProgress);
+            if (smoothIndex >= -1.0) {
+                int lyricsY = 48 + yOffset;
+                List<LyricsUtil.LyricLine> lyrics = LyricsUtil.getCachedLyrics();
 
-            int lyricsY = 48 + yOffset;
-            String currentLine = LyricsUtil.getCurrentLine(progressMS);
-            String nextLine = LyricsUtil.getNextLine(progressMS);
+                int startIndex = (int) Math.floor(smoothIndex - 1);
+                int endIndex = (int) Math.ceil(smoothIndex + 2);
+                if (startIndex < 0) startIndex = 0;
+                if (endIndex > lyrics.size()) endIndex = lyrics.size();
 
-            if (!currentLine.isEmpty()) {
-                List<FormattedCharSequence> lineWrap = font.split(FormattedText.of(currentLine), HUD_WIDTH - textStart - 5);
-                if (!lineWrap.isEmpty()) {
-                    context.text(font, lineWrap.get(0), textStart, lyricsY, lyricsColor, true);
-                }
-            }
-            if (!nextLine.isEmpty()) {
-                List<FormattedCharSequence> lineWrap = font.split(FormattedText.of(nextLine), HUD_WIDTH - textStart - 5);
-                if (!lineWrap.isEmpty()) {
-                    context.text(font, lineWrap.get(0), textStart, lyricsY + 12, lyricsDim, true);
+                for (int i = startIndex; i < endIndex; i++) {
+                    LyricsUtil.LyricLine line = lyrics.get(i);
+                    double diff = i - smoothIndex;
+
+                    double alpha;
+                    if (diff < 0) {
+                        alpha = 1.0 + diff * 4.0;
+                    } else if (diff <= 1.0) {
+                        alpha = 1.0 - diff * 0.5;
+                    } else {
+                        alpha = 0.5 - (diff - 1.0) * 2.0;
+                    }
+                    if (alpha <= 0.0) continue;
+                    if (alpha > 1.0) alpha = 1.0;
+
+                    double y = lyricsY + diff * 12.0;
+
+                    Color c = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor);
+                    int colorArgb = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha * 255)).getRGB();
+
+                    List<FormattedCharSequence> lineWrap = font.split(FormattedText.of(line.text), HUD_WIDTH - textStart - 5);
+                    if (!lineWrap.isEmpty()) {
+                        context.text(font, lineWrap.get(0), textStart, (int) Math.round(y), colorArgb, true);
+                    }
                 }
             }
         }
@@ -184,11 +211,15 @@ public class DiscifyHUD implements HudElement {
         hudInfo    = data;
         progressMS = hudInfo[2] == null ? 0 : (Integer.parseInt(hudInfo[2]) - 1000);
         durationMS = hudInfo[3] == null ? -1 : Integer.parseInt(hudInfo[3]);
+        lastUpdateTimestamp = System.currentTimeMillis();
     }
 
     public static int getProgress() { return progressMS; }
     public static int getDuration() { return durationMS; }
-    public static void setProgress(int progress) { progressMS = progress; }
+    public static void setProgress(int progress) {
+        progressMS = progress;
+        lastUpdateTimestamp = System.currentTimeMillis();
+    }
     public static void setDuration(int duration)  { durationMS = duration; }
 
     public static void increaseVolume() {
