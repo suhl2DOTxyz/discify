@@ -39,7 +39,7 @@ public class LyricsUtil {
         loading = true;
 
         Thread fetcher = new Thread(() -> {
-            int retries = 4; // Try up to 5 times total
+            int retries = 2; // Try up to 3 times total
             boolean success = false;
 
             while (retries >= 0 && !success) {
@@ -93,9 +93,9 @@ public class LyricsUtil {
                 }
             }
 
-            // Fallback to Search API if exact GET failed/timed out — also retried up to 5 times
+            // Fallback to Search API if exact GET failed/timed out — also retried up to 3 times
             if (!success) {
-                int fallbackRetries = 4;
+                int fallbackRetries = 2;
                 while (fallbackRetries >= 0 && !success) {
                     try {
                         synchronized (LyricsUtil.class) {
@@ -150,7 +150,7 @@ public class LyricsUtil {
             // Final fallback: lrcmux (aggregates Musixmatch, Kugou, YouTube Music, Genius)
             // Uses LRCLIB-compatible endpoint so same JSON shape
             if (!success) {
-                int lrcmuxRetries = 4;
+                int lrcmuxRetries = 2;
                 while (lrcmuxRetries >= 0 && !success) {
                     try {
                         synchronized (LyricsUtil.class) {
