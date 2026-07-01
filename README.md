@@ -19,7 +19,6 @@ Fork of the original [Blockify](https://github.com/BuffMage/Blockify) — overla
 - Minecraft **26.1.2** with **Fabric Loader** 0.19.2+ and **Fabric API**
 - Java **25** or newer
 - [MidnightLib](https://modrinth.com/mod/midnightlib) 1.9.3+ (for the in-game config screen)
-- A **Spotify Premium** account (the Web API endpoints used for playback control are Premium-only)
 
 ## How to use
 
