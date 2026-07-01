@@ -306,9 +306,25 @@ public class SpotifyUtil
         }
     }
 
+    private static String lastFetchedTrackId = null;
+
     public static void addTrack()
     {
-        EXECUTOR_SERVICE.execute(() -> addTrack(getPlaybackInfo()[7]));
+        EXECUTOR_SERVICE.execute(() -> {
+            if (lastFetchedTrackId != null) {
+                addTrack(lastFetchedTrackId);
+                return;
+            }
+            String id = getPlaybackInfo()[7];
+            if (id != null && !id.isEmpty()) {
+                lastFetchedTrackId = id;
+                addTrack(id);
+            }
+        });
+    }
+
+    public static void clearCachedTrackId() {
+        lastFetchedTrackId = null;
     }
 
     public static void nextSong()

@@ -34,5 +34,9 @@
   "discify.midnightconfig.barColor.tooltip": "Hexadecimal color",
   "discify.midnightconfig.backgroundColor.tooltip": "Hexadecimal color",
   "discify.midnightconfig.backgroundTransparency.tooltip": "0-255",
-  "discify.midnightconfig.inGameMusicVolume": "In-Game music volume"
+  "discify.midnightconfig.inGameMusicVolume": "In-Game music volume",
+  "discify.midnightconfig.showLyrics": "Show synced lyrics",
+  "discify.midnightconfig.showLyrics.tooltip": "Fetch and display synced lyrics from LRCLIB.net",
+  "discify.midnightconfig.lyricsColor": "Lyrics Color",
+  "discify.midnightconfig.lyricsColor.tooltip": "Hexadecimal color"
 }

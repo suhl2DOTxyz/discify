@@ -31,9 +31,10 @@ public class URLImage
         this.width  = width;
         this.height = height;
         Minecraft client = Minecraft.getInstance();
-        this.urlTexture = new DynamicTexture("discify-album-" + (counter++), width, height, false);
+        int id = counter++;
+        this.urlTexture = new DynamicTexture("discify-album-" + id, width, height, false);
         this.urlImage   = this.urlTexture.getPixels();
-        this.urlID      = Identifier.fromNamespaceAndPath("discify", "album/cover_" + counter);
+        this.urlID      = Identifier.fromNamespaceAndPath("discify", "album/cover_" + id);
         client.getTextureManager().register(this.urlID, this.urlTexture);
     }
 

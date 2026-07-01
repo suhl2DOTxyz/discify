@@ -15,6 +15,8 @@ public class DiscifyConfig extends MidnightConfig {
     @Entry(width = 7, min = 7, isColor = true) public static String barColor = "#ffffff";
     @Entry(width = 7, min = 7, isColor = true) public static String backgroundColor = "#000000";
     @Entry(max = 255) public static int backgroundTransparency = 100;
+    @Entry public static boolean showLyrics = false;
+    @Entry(width = 7, min = 7, isColor = true) public static String lyricsColor = "#aaffaa";
     @Entry(max = 1) public static double inGameMusicVolume = 1;
 
     public enum Anchor {

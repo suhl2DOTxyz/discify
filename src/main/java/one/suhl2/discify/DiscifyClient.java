@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
+import one.suhl2.discify.util.LyricsUtil;
 import one.suhl2.discify.util.SMTCUtil;
 import one.suhl2.discify.util.SpotifyUtil;
 import one.suhl2.discify.util.WindowsVolumeUtil;
@@ -44,6 +45,8 @@ public class DiscifyClient implements ClientModInitializer {
     private boolean toggleInGameMusicKeyPrevState = false;
 
     private static Thread requestThread;
+    private static String prevSongTitle = "";
+    private static String prevSongArtist = "";
 
     public static final Logger LOGGER = LogManager.getLogger("Discify");
 
@@ -81,11 +84,23 @@ public class DiscifyClient implements ClientModInitializer {
 
                         if (data[0] != null) {
                             DiscifyHUD.updateData(data);
+
+                            String title = data[0];
+                            String artist = data[1] != null ? data[1] : "";
+                            if (!title.equals(prevSongTitle) || !artist.equals(prevSongArtist)) {
+                                prevSongTitle = title;
+                                prevSongArtist = artist;
+                                SpotifyUtil.clearCachedTrackId();
+                            }
                         } else {
                             DiscifyHUD.updateData(new String[8]);
                         }
                     } else if (SMTCUtil.isPlaying()) {
                         DiscifyHUD.setProgress(DiscifyHUD.getProgress() + 1000);
+                    }
+
+                    if (DiscifyConfig.showLyrics && !prevSongTitle.isEmpty()) {
+                        LyricsUtil.loadLyrics(prevSongTitle, prevSongArtist);
                     }
 
                     if (DiscifyHUD.hudInfo[0] != null && --volumePollCooldown <= 0) {
