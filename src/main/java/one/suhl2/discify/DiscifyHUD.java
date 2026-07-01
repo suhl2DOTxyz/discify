@@ -39,7 +39,7 @@ public class DiscifyHUD implements HudElement {
     private static final int ART_Y = 5;
     private static final int TEXT_GAP = 10;
     private static final int BG_NO_LYRICS = 48;
-    private static final int BG_WITH_LYRICS = 80;
+    private static final int BG_WITH_LYRICS = 90;
 
     public DiscifyHUD() {
         albumImage = null;
@@ -186,13 +186,16 @@ public class DiscifyHUD implements HudElement {
             } else {
                 double smoothIndex = LyricsUtil.getSmoothIndex(currentProgress);
                 if (smoothIndex >= -1.0) {
-                    int lyricsY = 48 + yOffset;
+                    int lyricsY = 52 + yOffset;
                     List<LyricsUtil.LyricLine> lyrics = LyricsUtil.getCachedLyrics();
 
+                    // Show previous, current, and next line
                     int startIndex = (int) Math.floor(smoothIndex - 1);
                     int endIndex = (int) Math.ceil(smoothIndex + 2);
                     if (startIndex < 0) startIndex = 0;
                     if (endIndex > lyrics.size()) endIndex = lyrics.size();
+
+                    Color dimColor = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor);
 
                     for (int i = startIndex; i < endIndex; i++) {
                         LyricsUtil.LyricLine line = lyrics.get(i);
@@ -200,19 +203,32 @@ public class DiscifyHUD implements HudElement {
 
                         double alpha;
                         if (diff < 0) {
-                            alpha = 1.0 + diff * 4.0;
+                            // Past lines: quickly fade out
+                            alpha = 1.0 + diff * 3.0;
                         } else if (diff <= 1.0) {
-                            alpha = 1.0 - diff * 0.5;
+                            // Current and next line
+                            alpha = 1.0 - diff * 0.55;
                         } else {
-                            alpha = 0.5 - (diff - 1.0) * 2.0;
+                            alpha = 0.0;
                         }
                         if (alpha <= 0.0) continue;
                         if (alpha > 1.0) alpha = 1.0;
 
-                        double y = lyricsY + diff * 12.0;
+                        double y = lyricsY + diff * 13.0;
 
-                        Color c = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor);
-                        int colorArgb = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha * 255)).getRGB();
+                        // Active line (diff close to 0): render in bright white
+                        // Surrounding lines: render in configured lyricsColor at reduced alpha
+                        int colorArgb;
+                        if (Math.abs(diff) < 0.5) {
+                            // Interpolate from dimColor toward white based on how "active" this line is
+                            double activeBlend = 1.0 - Math.abs(diff) * 2.0;
+                            int r = (int) (dimColor.getRed()   + (255 - dimColor.getRed())   * activeBlend);
+                            int g = (int) (dimColor.getGreen() + (255 - dimColor.getGreen()) * activeBlend);
+                            int b = (int) (dimColor.getBlue()  + (255 - dimColor.getBlue())  * activeBlend);
+                            colorArgb = new Color(r, g, b, (int) (alpha * 255)).getRGB();
+                        } else {
+                            colorArgb = new Color(dimColor.getRed(), dimColor.getGreen(), dimColor.getBlue(), (int) (alpha * 255)).getRGB();
+                        }
 
                         List<FormattedCharSequence> lineWrap = font.split(FormattedText.of(line.text), HUD_WIDTH - textStart - 5);
                         if (!lineWrap.isEmpty()) {
