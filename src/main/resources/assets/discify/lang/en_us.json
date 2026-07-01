@@ -38,5 +38,6 @@
   "discify.midnightconfig.showLyrics": "Show synced lyrics",
   "discify.midnightconfig.showLyrics.tooltip": "Fetch and display synced lyrics from LRCLIB.net",
   "discify.midnightconfig.lyricsColor": "Lyrics Color",
-  "discify.midnightconfig.lyricsColor.tooltip": "Hexadecimal color"
+  "discify.midnightconfig.lyricsColor.tooltip": "Hexadecimal color",
+  "discify.hud.loading_lyrics": "Loading lyrics"
 }

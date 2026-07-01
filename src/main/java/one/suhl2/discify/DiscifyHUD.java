@@ -98,7 +98,7 @@ public class DiscifyHUD implements HudElement {
             yOffset = 15;
         }
 
-        boolean showLyrics = DiscifyConfig.showLyrics && LyricsUtil.hasLyrics();
+        boolean showLyrics = DiscifyConfig.showLyrics && (LyricsUtil.hasLyrics() || LyricsUtil.isLoading());
         int bgHeight = (showLyrics ? BG_WITH_LYRICS : BG_NO_LYRICS) + yOffset;
 
         Matrix3x2fStack pose = context.pose();
@@ -169,39 +169,55 @@ public class DiscifyHUD implements HudElement {
         context.text(font, durationText, HUD_WIDTH - 5 - font.width(durationText), timeY, timeColor, true);
 
         if (showLyrics) {
-            double smoothIndex = LyricsUtil.getSmoothIndex(currentProgress);
-            if (smoothIndex >= -1.0) {
+            if (LyricsUtil.isLoading() && !LyricsUtil.hasLyrics()) {
+                int lyricsDim = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor).darker().getRGB();
                 int lyricsY = 48 + yOffset;
-                List<LyricsUtil.LyricLine> lyrics = LyricsUtil.getCachedLyrics();
+                long dotState = System.currentTimeMillis() / 400 % 4;
+                String dots = "";
+                if (dotState == 1) dots = ".";
+                else if (dotState == 2) dots = "..";
+                else if (dotState == 3) dots = "...";
 
-                int startIndex = (int) Math.floor(smoothIndex - 1);
-                int endIndex = (int) Math.ceil(smoothIndex + 2);
-                if (startIndex < 0) startIndex = 0;
-                if (endIndex > lyrics.size()) endIndex = lyrics.size();
+                String loadingText = I18n.get("discify.hud.loading_lyrics") + dots;
+                if (loadingText.startsWith("discify.")) {
+                    loadingText = "Loading lyrics" + dots;
+                }
+                context.text(font, loadingText, textStart, lyricsY + 6, lyricsDim, true);
+            } else {
+                double smoothIndex = LyricsUtil.getSmoothIndex(currentProgress);
+                if (smoothIndex >= -1.0) {
+                    int lyricsY = 48 + yOffset;
+                    List<LyricsUtil.LyricLine> lyrics = LyricsUtil.getCachedLyrics();
 
-                for (int i = startIndex; i < endIndex; i++) {
-                    LyricsUtil.LyricLine line = lyrics.get(i);
-                    double diff = i - smoothIndex;
+                    int startIndex = (int) Math.floor(smoothIndex - 1);
+                    int endIndex = (int) Math.ceil(smoothIndex + 2);
+                    if (startIndex < 0) startIndex = 0;
+                    if (endIndex > lyrics.size()) endIndex = lyrics.size();
 
-                    double alpha;
-                    if (diff < 0) {
-                        alpha = 1.0 + diff * 4.0;
-                    } else if (diff <= 1.0) {
-                        alpha = 1.0 - diff * 0.5;
-                    } else {
-                        alpha = 0.5 - (diff - 1.0) * 2.0;
-                    }
-                    if (alpha <= 0.0) continue;
-                    if (alpha > 1.0) alpha = 1.0;
+                    for (int i = startIndex; i < endIndex; i++) {
+                        LyricsUtil.LyricLine line = lyrics.get(i);
+                        double diff = i - smoothIndex;
 
-                    double y = lyricsY + diff * 12.0;
+                        double alpha;
+                        if (diff < 0) {
+                            alpha = 1.0 + diff * 4.0;
+                        } else if (diff <= 1.0) {
+                            alpha = 1.0 - diff * 0.5;
+                        } else {
+                            alpha = 0.5 - (diff - 1.0) * 2.0;
+                        }
+                        if (alpha <= 0.0) continue;
+                        if (alpha > 1.0) alpha = 1.0;
 
-                    Color c = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor);
-                    int colorArgb = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha * 255)).getRGB();
+                        double y = lyricsY + diff * 12.0;
 
-                    List<FormattedCharSequence> lineWrap = font.split(FormattedText.of(line.text), HUD_WIDTH - textStart - 5);
-                    if (!lineWrap.isEmpty()) {
-                        context.text(font, lineWrap.get(0), textStart, (int) Math.round(y), colorArgb, true);
+                        Color c = MidnightColorUtil.hex2Rgb(DiscifyConfig.lyricsColor);
+                        int colorArgb = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha * 255)).getRGB();
+
+                        List<FormattedCharSequence> lineWrap = font.split(FormattedText.of(line.text), HUD_WIDTH - textStart - 5);
+                        if (!lineWrap.isEmpty()) {
+                            context.text(font, lineWrap.get(0), textStart, (int) Math.round(y), colorArgb, true);
+                        }
                     }
                 }
             }
